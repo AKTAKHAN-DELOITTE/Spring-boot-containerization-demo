@@ -1,0 +1,72 @@
+# =========================================================================
+# Docker Compose file for the Movie Booking application stack.
+# Defines two services: "mongodb" (database) and "app" (the Spring Boot API).
+# Run with: docker compose up --build
+# =========================================================================
+
+services:
+
+  # ---------------------------------------------------------------------
+  # MongoDB - the database used by the Spring Boot app.
+  # ---------------------------------------------------------------------
+  mongodb:
+    image: mongo:7                       # Official MongoDB 7 image from Docker Hub
+    container_name: moviebooking-mongodb
+    restart: unless-stopped              # Auto-restart unless explicitly stopped
+    ports:
+      - "27017:27017"                    # host:container - lets you connect from
+                                          # your machine too (e.g. mongosh, Compass)
+    volumes:
+      # Named volume "mongodb-data" persists /data/db across
+      # container restarts/recreation (data survives `docker compose down`,
+      # but not `docker compose down -v`).
+      - mongodb-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: moviebookingdb   # DB created on first startup
+
+  # ---------------------------------------------------------------------
+  # Spring Boot application - built from the local Dockerfile.
+  # ---------------------------------------------------------------------
+  app:
+    build:
+      context: .          # Build context = project root (needs pom.xml, src/)
+      dockerfile: Dockerfile
+    container_name: moviebooking-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"       # host:container - app reachable at localhost:8080
+    depends_on:
+      - mongodb           # Ensures mongodb container starts first
+                          # (does NOT wait for Mongo to be fully "ready",
+                          # just for the container process to start)
+    environment:
+      # Spring Boot relaxed-binding env vars override application.properties.
+      # SPRING_MONGODB_HOST -> spring.mongodb.host
+      # (Spring Boot 4.x renamed these from spring.data.mongodb.* to
+      # spring.mongodb.* - the old prefix is deprecated/non-functional.)
+      #
+      # Points the Spring app at the "mongodb" service (by container/service
+      # name) instead of localhost, since both containers share the same
+      # Compose network and Docker's internal DNS resolves "mongodb" to
+      # that container's IP. Inside the app container, "localhost" would
+      # refer to the app container itself, not the Mongo container.
+      SPRING_MONGODB_HOST: mongodb
+      SPRING_MONGODB_PORT: 27017
+      SPRING_MONGODB_DATABASE: moviebookingdb
+
+# Named volumes declared at the top level so they can be reused/inspected
+# independently of any single container's lifecycle.
+#
+# "mongodb-data:" is intentionally left with no sub-options - this tells
+# Compose to create/manage a plain local-driver volume with default
+# settings (equivalent to `docker volume create mongodb-data`). Compose
+# prefixes it with the project name, e.g.
+# "spring-boot-containerization_mongodb-data" (see `docker volume ls`).
+# It only becomes "active" where it's mounted - see the "mongodb" service's
+# `volumes: - mongodb-data:/data/db` above, which is what actually
+# attaches this volume to the container's /data/db path.
+volumes:
+  mongodb-data:
+
+
+

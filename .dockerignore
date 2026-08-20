@@ -1,0 +1,11 @@
+# Files/folders excluded from the Docker build context to keep builds
+# fast and avoid leaking local artifacts/IDE config into the image.
+target/          # Maven build output (rebuilt fresh inside the container)
+.git/            # Git history/metadata - not needed for the build
+.idea/           # JetBrains IDE project settings
+*.iml            # JetBrains module files
+.mvn/            # Maven wrapper metadata (mvnw script itself still copied via src? not needed for docker build)
+*.log            # Log files
+HELP.md          # Spring Boot generated help doc, irrelevant to the image
+
+

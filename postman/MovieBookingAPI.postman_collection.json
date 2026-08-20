@@ -1,0 +1,322 @@
+{
+  "info": {
+    "name": "Movie Booking API",
+    "description": "Collection for testing the Movie Booking Spring Boot + MongoDB REST API (movies & bookings).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "e2b1a2a0-movie-booking-collection"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "movieId", "value": "", "type": "string" },
+    { "key": "movieId2", "value": "", "type": "string" },
+    { "key": "bookingId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Movies",
+      "item": [
+        {
+          "name": "Get All Movies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/movies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "movies"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Movie By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/movies/{{movieId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "movies", "{{movieId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Movie",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('movieId', json.id);",
+                  "  pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "} else {",
+                  "  pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movieName\": \"Inception\",\n  \"theatre\": \"PVR City Center\",\n  \"showTime\": \"2026-08-20T18:00:00\",\n  \"totalSeats\": 100,\n  \"availableSeats\": 100,\n  \"price\": 250.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/movies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "movies"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Movies (Batch)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  if (Array.isArray(json) && json.length > 0) {",
+                  "    pm.collectionVariables.set('movieId', json[0].id);",
+                  "  }",
+                  "  if (Array.isArray(json) && json.length > 1) {",
+                  "    pm.collectionVariables.set('movieId2', json[1].id);",
+                  "  }",
+                  "}",
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"movieName\": \"Inception\",\n    \"theatre\": \"PVR City Center\",\n    \"showTime\": \"2026-08-20T18:00:00\",\n    \"totalSeats\": 100,\n    \"availableSeats\": 100,\n    \"price\": 250.0\n  },\n  {\n    \"movieName\": \"Interstellar\",\n    \"theatre\": \"INOX Metro\",\n    \"showTime\": \"2026-08-20T21:00:00\",\n    \"totalSeats\": 80,\n    \"availableSeats\": 80,\n    \"price\": 300.0\n  }\n]"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/movies/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "movies", "batch"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Movie",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movieName\": \"Inception\",\n  \"theatre\": \"PVR City Center\",\n  \"showTime\": \"2026-08-20T18:30:00\",\n  \"totalSeats\": 100,\n  \"availableSeats\": 100,\n  \"price\": 275.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/movies/{{movieId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "movies", "{{movieId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Movie",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/movies/{{movieId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "movies", "{{movieId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Movie By Id (Not Found - 404 check)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/movies/nonexistent-id-123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "movies", "nonexistent-id-123"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Movie (Validation Error - 400 check)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movieName\": \"\",\n  \"theatre\": \"\",\n  \"showTime\": \"\",\n  \"totalSeats\": 0,\n  \"availableSeats\": -1,\n  \"price\": -10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/movies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "movies"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Get All Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Booking By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings", "{{bookingId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('bookingId', json.id);",
+                  "}",
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movieId\": \"{{movieId}}\",\n  \"customerName\": \"Alice\",\n  \"seatsBooked\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Booking (Insufficient Seats - 400 check)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movieId\": \"{{movieId}}\",\n  \"customerName\": \"Bob\",\n  \"seatsBooked\": 999999\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Booking (Movie Not Found - 404 check)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movieId\": \"nonexistent-id-123\",\n  \"customerName\": \"Charlie\",\n  \"seatsBooked\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Booking (restores seats)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CANCELLED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings", "{{bookingId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Booking",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/{{bookingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bookings", "{{bookingId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+
