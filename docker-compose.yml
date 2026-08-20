@@ -23,6 +23,16 @@ services:
       - mongodb-data:/data/db
     environment:
       MONGO_INITDB_DATABASE: moviebookingdb   # DB created on first startup
+    healthcheck:
+      # Pings the local mongod instance; used by the "app" service's
+      # `depends_on: condition: service_healthy` below so the app waits
+      # for Mongo to actually be accepting connections, not just for the
+      # container process to have started.
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   # ---------------------------------------------------------------------
   # Spring Boot application - built from the local Dockerfile.
@@ -36,9 +46,9 @@ services:
     ports:
       - "8080:8080"       # host:container - app reachable at localhost:8080
     depends_on:
-      - mongodb           # Ensures mongodb container starts first
-                          # (does NOT wait for Mongo to be fully "ready",
-                          # just for the container process to start)
+      mongodb:
+        condition: service_healthy   # Wait until Mongo's healthcheck passes,
+                                      # not just until its container starts.
     environment:
       # Spring Boot relaxed-binding env vars override application.properties.
       # SPRING_MONGODB_HOST -> spring.mongodb.host
