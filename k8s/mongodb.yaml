@@ -1,0 +1,91 @@
+# ---------------------------------------------------------------------
+# MongoDB - PersistentVolumeClaim + Deployment + Service
+# Equivalent to the "mongodb" service in docker-compose.yml
+# ---------------------------------------------------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  # Recreate (not the default RollingUpdate) is required here: this is a
+  # single-replica stateful workload backed by a ReadWriteOnce PVC. Mongod
+  # takes an exclusive lock on /data/db (mongod.lock) - if RollingUpdate
+  # started a new pod before killing the old one, the new mongod would
+  # crash-loop with "DBPathInUse: Unable to lock the lock file" because
+  # the old instance still holds it. Recreate fully terminates the old
+  # pod first, releasing the lock, before the new one starts.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:7
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_DATABASE
+              value: moviebookingdb
+          volumeMounts:
+            - name: mongodb-data
+              mountPath: /data/db
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            exec:
+              # mongosh is a full Node.js shell - it routinely takes longer
+              # than 1s to start, so timeoutSeconds must be generous or this
+              # probe flaps (fails intermittently) even when Mongo is healthy,
+              # briefly pulling the pod out of the Service's endpoints.
+              command: ["mongosh", "--eval", "db.adminCommand('ping')"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["mongosh", "--eval", "db.adminCommand('ping')"]
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+      volumes:
+        - name: mongodb-data
+          persistentVolumeClaim:
+            claimName: mongodb-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb
+spec:
+  selector:
+    app: mongodb
+  ports:
+    - port: 27017
+      targetPort: 27017

@@ -1,0 +1,68 @@
+# ---------------------------------------------------------------------
+# Spring Boot app - Deployment + Service
+# Equivalent to the "app" service in docker-compose.yml
+# ---------------------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: moviebooking-app
+  labels:
+    app: moviebooking-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: moviebooking-app
+  template:
+    metadata:
+      labels:
+        app: moviebooking-app
+    spec:
+      containers:
+        - name: app
+          image: spring-boot-containerization-app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080 # the port that the container is running in the cluster
+          envFrom:
+            - configMapRef:
+                name: moviebooking-app-config
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "384Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            # "Is this pod ready to receive traffic right now?" - includes
+            # downstream dependencies (e.g. Mongo). If Mongo is temporarily
+            # unreachable, this fails and k8s stops routing traffic here,
+            # without killing/restarting the pod.
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            # "Is the JVM itself still alive (not hung/deadlocked)?" -
+            # deliberately does NOT depend on Mongo, so a Mongo outage
+            # doesn't cause k8s to kill/restart otherwise-healthy app pods.
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: moviebooking-app
+spec:
+  type: NodePort
+  selector:
+    app: moviebooking-app
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080
