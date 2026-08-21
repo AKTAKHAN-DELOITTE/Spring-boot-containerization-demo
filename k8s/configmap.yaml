@@ -1,6 +1,5 @@
 # ---------------------------------------------------------------------
 # ConfigMap - externalizes the app's env vars from the Deployment spec.
-# Equivalent to the "environment:" block under docker-compose.yml's
 # "app" service, but editable independently of the Deployment.
 # ---------------------------------------------------------------------
 apiVersion: v1

@@ -1,6 +1,5 @@
 # ---------------------------------------------------------------------
 # MongoDB - PersistentVolumeClaim + Deployment + Service
-# Equivalent to the "mongodb" service in docker-compose.yml
 # ---------------------------------------------------------------------
 apiVersion: v1
 kind: PersistentVolumeClaim

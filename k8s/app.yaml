@@ -1,6 +1,5 @@
 # ---------------------------------------------------------------------
 # Spring Boot app - Deployment + Service
-# Equivalent to the "app" service in docker-compose.yml
 # ---------------------------------------------------------------------
 apiVersion: apps/v1
 kind: Deployment
@@ -13,7 +12,7 @@ spec:
   selector:
     matchLabels:
       app: moviebooking-app
-  template:
+  template: ## pod template defines the pods that will be created by this Deployment. It includes the container spec, environment variables, resource requests/limits, and health probes.
     metadata:
       labels:
         app: moviebooking-app
@@ -63,6 +62,6 @@ spec:
   selector:
     app: moviebooking-app
   ports:
-    - port: 8080
-      targetPort: 8080
-      nodePort: 30080
+    - port: 8080      # the port the Service itself listens on inside the cluster
+      targetPort: 8080 # containerPort: the port the container is listening on inside the pod
+      nodePort: 30080 # port opened on the node itself, reachable from outside the cluster(e.g. http://localhost:30080)
