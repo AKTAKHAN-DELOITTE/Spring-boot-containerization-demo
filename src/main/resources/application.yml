@@ -10,3 +10,10 @@ spring:
     port: 27017
     database: moviebookingdb
 
+management:
+  endpoint:
+    health:
+      group:
+        readiness:
+          include: readinessState,mongo
+
