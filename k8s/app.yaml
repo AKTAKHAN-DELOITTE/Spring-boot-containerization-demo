@@ -43,6 +43,8 @@ spec:
               port: 8080
             initialDelaySeconds: 15
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 5
           livenessProbe:
             # "Is the JVM itself still alive (not hung/deadlocked)?" -
             # deliberately does NOT depend on Mongo, so a Mongo outage

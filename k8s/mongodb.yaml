@@ -54,7 +54,7 @@ spec:
               memory: "256Mi"
             limits:
               cpu: "500m"
-              memory: "512Mi"
+              memory: "768Mi"
           readinessProbe:
             exec:
               # mongosh is a full Node.js shell - it routinely takes longer
@@ -62,17 +62,17 @@ spec:
               # probe flaps (fails intermittently) even when Mongo is healthy,
               # briefly pulling the pod out of the Service's endpoints.
               command: ["mongosh", "--eval", "db.adminCommand('ping')"]
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            timeoutSeconds: 5
-            failureThreshold: 3
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 8
+            failureThreshold: 5
           livenessProbe:
             exec:
               command: ["mongosh", "--eval", "db.adminCommand('ping')"]
-            initialDelaySeconds: 20
+            initialDelaySeconds: 30
             periodSeconds: 15
-            timeoutSeconds: 5
-            failureThreshold: 3
+            timeoutSeconds: 8
+            failureThreshold: 5
       volumes:
         - name: mongodb-data
           persistentVolumeClaim:
